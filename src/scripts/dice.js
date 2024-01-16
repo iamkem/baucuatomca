@@ -20,7 +20,7 @@ export class Dice {
     let images = [];
 
     if (Array.isArray(val)) {
-      Array.from(val).map((image) => {
+      Array.from(val).forEach((image) => {
         let img;
 
         if (typeof image === "string") {

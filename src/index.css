@@ -6,6 +6,25 @@ body {
   background-image: url("./img/background.jpg");
 }
 
+.btn-view {
+  justify-content: center;
+  display: flex;
+}
+
+.btn-start {
+  background-color: #f44336;
+  border: none;
+  color: white;
+  padding: 1rem 2rem;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.5rem;
+  margin: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+}
+
 .game {
   height: 500px;
   display: flex;
@@ -13,5 +32,77 @@ body {
   justify-content: center;
 }
 
-.plate-wrapper {
+@property --animation-duration {
+  syntax: "<time>";
+  initial-value: 1s;
+  inherits: true;
+}
+
+.movePlate {
+  animation: move var(--animation-duration) ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+.shakePlate {
+  animation: shake var(--animation-duration) ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+.openPlate {
+  animation: return var(--animation-duration) ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes move {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-300px);
+  }
+}
+
+@keyframes return {
+  0% {
+    transform: translateX(-300px);
+  }
+  30% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(-300px) rotate(0deg);
+  }
+  10% {
+    transform: translateX(-300px) rotate(-5deg);
+  }
+  20% {
+    transform: translateX(-300px) rotate(5deg);
+  }
+  30% {
+    transform: translateX(-300px) rotate(-5deg);
+  }
+  40% {
+    transform: translateX(-300px) rotate(5deg);
+  }
+  50% {
+    transform: translateX(-300px) rotate(-5deg);
+  }
+  60% {
+    transform: translateX(-300px) rotate(5deg);
+  }
+  70% {
+    transform: translateX(-300px) rotate(-5deg);
+  }
+  80% {
+    transform: translateX(-300px) rotate(5deg);
+  }
+  90% {
+    transform: translateX(-300px) rotate(-5deg);
+  }
+  100% {
+    transform: translateX(-300px) rotate(0deg);
+  }
 }

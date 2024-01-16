@@ -24,7 +24,19 @@ export class Plate {
     this._plateContainer.appendChild(this.canvas);
   }
 
-  init(props = {}) {}
+  roll() {
+    if (typeof this._dices == "undefined") {
+      return;
+    }
+
+    if (this._dices.length > 0) {
+      this._dices.forEach((dice) => {
+        dice.roll();
+      });
+    }
+
+    this.draw();
+  }
 
   draw() {
     const ctx = this._context;
@@ -37,6 +49,10 @@ export class Plate {
   }
 
   drawDices(ctx) {
+    if (typeof this._dices == "undefined") {
+      return;
+    }
+
     this._dices.forEach((dice, index) => {
       const diceWidth = (this._width / this._dices.length) * 0.7;
 
@@ -61,6 +77,10 @@ export class Plate {
   }
 
   set dices(value) {
+    if (typeof value === "undefined") {
+      return;
+    }
+
     if (typeof value !== "number") {
       throw new Error("Dices must be a number");
     }
