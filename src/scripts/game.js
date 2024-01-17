@@ -1,14 +1,16 @@
 import { Plate } from "./plate.js";
+import { Board } from "./board.js";
 
-let plateFront, plateBack;
+let plateFront, plateBack, board;
 
 const startBtn = document.getElementById("btn-start");
 const pbElement = document.querySelector(".plate_back");
 const pfElement = document.querySelector(".plate_front");
+const boardElement = document.querySelector(".board");
 
 let isOpen = false;
 
-function init() {
+function initGame() {
   plateFront = new Plate(pfElement, {
     image: "./img/plate.png",
     width: 300,
@@ -20,6 +22,12 @@ function init() {
     image: "./img/plate_back.png",
     width: 300,
     height: 300,
+  });
+
+  board = new Board(boardElement, {
+    width: 700,
+    height: 300,
+    itemsLength: 6,
   });
 }
 
@@ -66,7 +74,7 @@ function reset() {
 }
 
 window.onload = () => {
-  init();
+  initGame();
 
   startBtn.addEventListener("click", () => {
     if (isOpen) {
