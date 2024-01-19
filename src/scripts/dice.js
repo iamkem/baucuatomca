@@ -8,8 +8,10 @@ export class Dice {
     this.images = props.images;
   }
 
-  roll() {
+  roll(callback) {
     this._value = Math.floor(Math.random() * 6) + 1;
+
+    callback?.(this._value);
   }
 
   get images() {

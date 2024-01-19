@@ -4,13 +4,13 @@ export class Plate {
   constructor(container, props = {}) {
     this.height = props.height;
     this.width = props.width;
-    this.dices = props.dices;
+    this.#dices = props.dices;
     this.image = props.image;
 
-    this.add(container);
+    this.#add(container);
   }
 
-  add(container) {
+  #add(container) {
     this._plateContainer = container;
 
     this.canvas = document.createElement("canvas");
@@ -24,31 +24,37 @@ export class Plate {
     this._plateContainer.appendChild(this.canvas);
   }
 
-  roll() {
+  roll(callback) {
     if (typeof this._dices == "undefined") {
       return;
     }
 
+    let values = [];
+
     if (this._dices.length > 0) {
       this._dices.forEach((dice) => {
-        dice.roll();
+        dice.roll((value) => {
+          values.push(value);
+        });
       });
+
+      callback?.(values);
     }
 
-    this.draw();
+    this.#draw();
   }
 
-  draw() {
+  #draw() {
     const ctx = this._context;
 
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     ctx.drawImage(this._image, 0, 0, this._width, this._height);
 
-    this.drawDices(ctx);
+    this.#drawDices(ctx);
   }
 
-  drawDices(ctx) {
+  #drawDices(ctx) {
     if (typeof this._dices == "undefined") {
       return;
     }
@@ -72,11 +78,11 @@ export class Plate {
     });
   }
 
-  get dices() {
+  get #dices() {
     return this._dices;
   }
 
-  set dices(value) {
+  set #dices(value) {
     if (typeof value === "undefined") {
       return;
     }
@@ -106,7 +112,7 @@ export class Plate {
     const image = new Image();
 
     image.onload = () => {
-      this.draw();
+      this.#draw();
     };
 
     image.src = value;
