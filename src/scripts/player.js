@@ -5,6 +5,7 @@ export class Player {
     this.name = props.name;
     this.money = props.money || 500000;
     this.image = props.image;
+    this.betItem = props.betItem;
 
     this.#draw(container);
   }
@@ -15,7 +16,9 @@ export class Player {
     const name = document.createElement("p");
     const money = document.createElement("p");
 
-    e.classList.add(`player_${this._id}_${this._role}_${this._name}`);
+    const className = `player_${this._id}_${this._role}_${this._name}`;
+
+    e.classList.add(className);
 
     e.style.margin = "10px";
 
@@ -30,6 +33,7 @@ export class Player {
     name.style.fontSize = "12px";
     name.style.textAlign = "center";
 
+    money.className = "money";
     money.innerText = new Intl.NumberFormat("vi-VN", {}).format(this._money);
     money.style.color = "white";
     money.style.margin = "0";
@@ -41,15 +45,21 @@ export class Player {
     container.appendChild(e);
   }
 
+  update() {
+    const className = `player_${this._id}_${this._role}_${this._name}`;
+
+    const e = document.querySelector(`.${className}`);
+
+    const money = e.querySelector("p:nth-child(3)");
+
+    money.innerText = new Intl.NumberFormat("vi-VN", {}).format(this._money);
+  }
+
   get id() {
     return this._id;
   }
 
   set id(val) {
-    if (typeof val !== "number") {
-      throw new Error("Id must be a number");
-    }
-
     this._id = val;
   }
 
@@ -103,5 +113,17 @@ export class Player {
     image.src = val;
 
     this._image = image;
+  }
+
+  get betItem() {
+    return this._betItem;
+  }
+
+  set betItem(val) {
+    if (typeof val === "undefined") {
+      return;
+    }
+
+    this._betItem = val;
   }
 }

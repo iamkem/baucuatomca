@@ -49,8 +49,10 @@ export class Board {
   constructor(container, props = {}) {
     this._height = props.height;
     this._width = props.width;
+
     this.#items = props.itemsLength;
     this.#init(container);
+    this.onClick = props.onClick;
   }
 
   #createItem(item) {
@@ -66,9 +68,7 @@ export class Board {
     img.src = item.image.src;
 
     img.addEventListener("click", (event) => {
-      // handle bet
-
-      console.log(item.value);
+      this.onClick(event, item);
     });
 
     return img;

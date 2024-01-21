@@ -1,11 +1,18 @@
+const { ipcRenderer } = require("electron");
+
+const firebase = require("firebase/compat/app");
+require("firebase/compat/firestore");
+
 import { Plate } from "./plate.js";
 import { Board } from "./board.js";
 import { Player } from "./player.js";
 import { Money } from "./money.js";
 
+import { StoreManager } from "./store.js";
+
 let plateFront, plateBack, board;
 
-const startBtn = document.getElementById("btn-start");
+const startBtn = document.getElementById("btn_roll");
 const pbElement = document.querySelector(".plate_back");
 const pfElement = document.querySelector(".plate_front");
 const boardElement = document.querySelector(".board");
@@ -20,7 +27,15 @@ const moneyValues = [1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
 
 let currentMoneyValue = moneyValues[0];
 
-function initGame() {
+const currentRoomId = StoreManager.get("currentRoomId");
+
+const db = firebase.firestore();
+
+let roomRef, currentRoom;
+
+let me = StoreManager.get("player");
+
+async function initGame() {
   plateFront = new Plate(pfElement, {
     image: "./img/plate.png",
     width: 300,
@@ -38,35 +53,103 @@ function initGame() {
     width: 700,
     height: 300,
     itemsLength: 6,
+    onClick: (event, item) => {
+      bet(item.value);
+    },
   });
 
-  initPlayers();
-
   initMoneyValues();
+
+  initRoom().then(() => {
+    registerRoomListener();
+  });
 }
 
-function initPlayers() {
-  const me = new Player(playersElement, {
-    id: 1,
-    role: "host",
-    name: "Kem",
-    money: 500000,
+async function initRoom() {
+  roomRef = db.collection("rooms").doc(currentRoomId);
+
+  currentRoom = (await roomRef.get()).data();
+
+  const { players } = currentRoom;
+
+  players.forEach((player) => {
+    addPlayer(player);
+  });
+}
+
+function registerRoomListener() {
+  roomRef.onSnapshot((doc) => {
+    currentRoom = doc.data();
+
+    if (currentRoom) {
+      const { players } = currentRoom;
+
+      if (players.length > 0) {
+        players.forEach((player) => {
+          if (player.id === me.id) {
+            me = player;
+          }
+        });
+      }
+    }
+  });
+}
+
+const getRole = () => (currentRoom.host.id === me.id ? "host" : "player");
+
+function addPlayer(data) {
+  const player = new Player(playersElement, {
+    ...data,
+    role: getRole(),
     image: "./img/avatar.png",
   });
 
-  console.log(me);
+  console.log(player);
+}
+
+function bet(value) {
+  if (currentMoneyValue > me.money) {
+    console.log("Not enough money");
+
+    return;
+  }
+
+  const { players } = currentRoom;
+
+  const playerIndex = players.findIndex((player) => player.id === me.id);
+
+  players[playerIndex].betItem = { [value]: currentMoneyValue };
+
+  roomRef.update({ players });
+}
+
+function onMoneyValueChange(value, mIndex) {
+  currentMoneyValue = value;
+
+  Array.from(moneyValuesElement.children).forEach((child, childIndex) => {
+    const btn = child.querySelector("button");
+
+    if (childIndex === mIndex) {
+      btn.style.border = "2px solid white";
+    } else {
+      btn.style.border = "none";
+    }
+  });
 }
 
 function initMoneyValues() {
-  moneyValues.forEach((value, i) => {
+  moneyValues.forEach((value, index) => {
     const money = new Money(moneyValuesElement, {
       value,
+      currentMoneyValue,
     });
 
+    if (index === 0) {
+      money.btn.style.border = "2px solid white";
+    }
+
     money.btn.addEventListener("click", () => {
-      currentMoneyValue = value;
-
-
+      onMoneyValueChange(value, index);
     });
   });
 }

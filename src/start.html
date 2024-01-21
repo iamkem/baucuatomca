@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bầu cua tôm cá</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="css/start.css" />
+  </head>
+  <body>
+    <div class="container create-name">
+      <label class="input">
+        <input
+          type="text"
+          id="player_name"
+          class="player_name"
+          placeholder="Tên người chơi"
+        />
+      </label>
+      <button id="btn_start" class="btn btn_start">
+        Bắt đầu
+        <i id="loading" class="fa fa-circle-o-notch fa-spin loading"></i>
+      </button>
+    </div>
+    <div class="container game-mode">
+      <button id="btn_single" class="btn btn_single">Chơi một mình</button>
+      <button id="btn_multi" class="btn btn_multi">Chơi với bạn</button>
+    </div>
+  </body>
+  <script type="module" src="scripts/start.js"></script>
+</html>

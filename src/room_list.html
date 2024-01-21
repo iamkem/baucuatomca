@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Danh sách phòng</title>
+    <link rel="stylesheet" href="css/room_list.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="create_room">
+        <label class="input">
+          <input type="text" id="create_name" placeholder="Tên phòng" />
+        </label>
+        <label class="input">
+          <input type="text" id="create_password" placeholder="Mật khẩu" />
+        </label>
+        <button id="btn_create_room">Tạo phòng</button>
+      </div>
+      <div class="room_list"></div>
+    </div>
+  </body>
+  <script type="module" src="scripts/room_list.js"></script>
+</html>

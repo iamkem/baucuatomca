@@ -1,0 +1,81 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  margin: auto;
+  padding: 2rem;
+  background-image: url("../img/bg1.jpg");
+  background-repeat: repeat;
+  background-size: cover;
+  background-position: center;
+  color: white;
+  font-size: 1.2em;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: -1;
+}
+
+.container {
+  width: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.room_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#btn_create_room {
+  margin-bottom: 1rem;
+}
+
+.room {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  background-color: rgba(244, 67, 54, 0.38);
+  border-radius: 0.5rem;
+}
+
+.room_order {
+  flex: 1;
+}
+
+.room_name {
+  flex: 1;
+}
+
+.room_players {
+  flex: 1;
+}
+
+.room_password_icon {
+  flex: 1;
+}
+
+.btn {
+  background-color: #f44336;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1rem;
+  margin: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+}
