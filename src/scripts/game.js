@@ -13,6 +13,7 @@ import { StoreManager } from "./store.js";
 let plateFront, plateBack, board;
 
 const startBtn = document.getElementById("btn_roll");
+const exitBtn = document.getElementById("btn_exit_room");
 const pbElement = document.querySelector(".plate_back");
 const pfElement = document.querySelector(".plate_front");
 const boardElement = document.querySelector(".board");
@@ -34,6 +35,8 @@ const db = firebase.firestore();
 let roomRef, currentRoom;
 
 let me = StoreManager.get("player");
+
+const players = [];
 
 async function initGame() {
   plateFront = new Plate(pfElement, {
@@ -73,8 +76,12 @@ async function initRoom() {
   const { players } = currentRoom;
 
   players.forEach((player) => {
+    delete player.betItem;
+
     addPlayer(player);
   });
+
+  await roomRef.update({ players });
 }
 
 function registerRoomListener() {
@@ -85,17 +92,22 @@ function registerRoomListener() {
       const { players } = currentRoom;
 
       if (players.length > 0) {
-        players.forEach((player) => {
-          if (player.id === me.id) {
-            me = player;
-          }
-        });
+        players.forEach(updatePlayer);
       }
     }
   });
 }
 
 const getRole = () => (currentRoom.host.id === me.id ? "host" : "player");
+
+const updatePlayer = (player) => {
+  const playerIndex = players.findIndex((p) => p.id === player.id);
+
+  players[playerIndex].money = player.money;
+  players[playerIndex].betItem = player.betItem;
+
+  players[playerIndex].update();
+};
 
 function addPlayer(data) {
   const player = new Player(playersElement, {
@@ -104,7 +116,9 @@ function addPlayer(data) {
     image: "./img/avatar.png",
   });
 
-  console.log(player);
+  console.log("player added", player);
+
+  players.push(player);
 }
 
 function bet(value) {
@@ -154,6 +168,33 @@ function initMoneyValues() {
   });
 }
 
+function checkWin() {
+  const { players } = currentRoom;
+
+  players.forEach((player) => {
+    const { betItem } = player;
+
+    if (!betItem) return;
+
+    const item = Object.keys(betItem)[0];
+    const value = Object.values(betItem)[0];
+
+    const isWin = currentValues.includes(item);
+
+    if (isWin) {
+      player.money += value;
+    } else {
+      player.money -= value;
+    }
+
+    delete player.betItem;
+  });
+
+  roomRef.update({ players });
+}
+
+const isCanRoll = () => currentRoom.players.every((player) => player.betItem);
+
 const shakePlate = () => {
   return new Promise((resolve) => {
     pbElement.classList.add("shakePlate");
@@ -163,6 +204,12 @@ const shakePlate = () => {
 };
 
 function luckyRoll() {
+  if (!isCanRoll()) {
+    console.log("Players are not ready");
+
+    return;
+  }
+
   startBtn.disabled = true;
   startBtn.innerText = "Đang xóc...";
 
@@ -192,6 +239,8 @@ function open() {
   startBtn.innerText = "Xóc";
 
   isOpen = false;
+
+  checkWin();
 }
 
 function reset() {
@@ -200,6 +249,22 @@ function reset() {
   pbElement.classList.remove("openPlate");
 
   currentValues.length = 0;
+}
+
+function exitRoom() {
+  const { players } = currentRoom;
+
+  const playerIndex = players.findIndex((player) => player.id === me.id);
+
+  StoreManager.set("player", players[playerIndex]);
+
+  players.splice(playerIndex, 1);
+
+  roomRef.update({ players });
+
+  StoreManager.delete("currentRoomId");
+
+  ipcRenderer.send("exit-room");
 }
 
 window.onload = () => {
@@ -211,5 +276,9 @@ window.onload = () => {
     } else {
       luckyRoll();
     }
+  });
+
+  exitBtn.addEventListener("click", () => {
+    exitRoom();
   });
 };

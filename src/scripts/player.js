@@ -16,28 +16,28 @@ export class Player {
     const name = document.createElement("p");
     const money = document.createElement("p");
 
-    const className = `player_${this._id}_${this._role}_${this._name}`;
+    this._className = `player_${this._id}_${this._role}_${this._name}`;
 
-    e.classList.add(className);
+    e.classList.add(this._className);
 
     e.style.margin = "10px";
 
     img.src = this._image.src;
 
-    img.height = 50;
-    img.width = 50;
+    img.height = 60;
+    img.width = 60;
 
     name.innerText = this._name;
     name.style.color = "white";
     name.style.margin = "0";
-    name.style.fontSize = "12px";
+    name.style.fontSize = "15px";
     name.style.textAlign = "center";
 
     money.className = "money";
     money.innerText = new Intl.NumberFormat("vi-VN", {}).format(this._money);
     money.style.color = "white";
     money.style.margin = "0";
-    money.style.fontSize = "12px";
+    money.style.fontSize = "15px";
     money.style.alignSelf = "center";
 
     e.append(img, name, money);
@@ -45,14 +45,69 @@ export class Player {
     container.appendChild(e);
   }
 
-  update() {
-    const className = `player_${this._id}_${this._role}_${this._name}`;
+  remove() {
+    const e = document.querySelector(`.${this._className}`);
 
-    const e = document.querySelector(`.${className}`);
+    const imgContainer = e.querySelector(`.${this._betClassName}`);
+
+    if (imgContainer) {
+      e.removeChild(imgContainer);
+    }
+  }
+
+  update() {
+    const e = document.querySelector(`.${this._className}`);
 
     const money = e.querySelector("p:nth-child(3)");
 
     money.innerText = new Intl.NumberFormat("vi-VN", {}).format(this._money);
+
+    if (this._betItem) {
+      this._betClassName = `bet_${this._id}_${this._role}_${this._name}`;
+
+      const item = Object.keys(this._betItem)[0];
+      const value = Object.values(this._betItem)[0] / 1000;
+
+      let imgContainer = e.querySelector(`.${this._betClassName}`);
+
+      if (imgContainer) {
+        const betImg = imgContainer.querySelector("img:first-child");
+        const betValueImg = imgContainer.querySelector("img:last-child");
+
+        betImg.src = `./img/${item}.png`;
+        betValueImg.src = `./img/${value}k.jpg`;
+      } else {
+        imgContainer = document.createElement("div");
+
+        imgContainer.classList.add(this._betClassName);
+
+        imgContainer.style.marginTop = "5px";
+        imgContainer.style.display = "flex";
+        imgContainer.style.justifyContent = "center";
+
+        const betImg = document.createElement("img");
+
+        betImg.src = `./img/${item}.png`;
+        betImg.style.height = "40px";
+        betImg.style.width = "40px";
+        betImg.style.zIndex = "2";
+        betImg.style.marginTop = "5px";
+
+        const betValueImg = document.createElement("img");
+
+        betValueImg.src = `./img/${value}k.jpg`;
+        betValueImg.style.height = "50px";
+        betValueImg.style.width = "100px";
+        betValueImg.style.position = "absolute";
+        betValueImg.style.zIndex = "1";
+
+        imgContainer.append(betImg, betValueImg);
+
+        e.appendChild(imgContainer);
+      }
+    } else {
+      this.remove();
+    }
   }
 
   get id() {
@@ -120,10 +175,6 @@ export class Player {
   }
 
   set betItem(val) {
-    if (typeof val === "undefined") {
-      return;
-    }
-
     this._betItem = val;
   }
 }

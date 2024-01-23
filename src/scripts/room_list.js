@@ -11,11 +11,12 @@ function updateRoomList(rooms) {
   roomListElement.innerHTML = "";
 
   rooms.forEach((room, i) => {
-    const roomElement = document.createElement("div");
+    if (room.players.length > 0) {
+      const roomElement = document.createElement("div");
 
-    roomElement.className = "room";
+      roomElement.className = "room";
 
-    roomElement.innerHTML = `
+      roomElement.innerHTML = `
       <span class="room_order">Phòng ${i}</span>
       <span class="room_name">${room.name}</span>
       <span class="room_players">Số người chơi: ${room.players.length}</span>
@@ -23,7 +24,12 @@ function updateRoomList(rooms) {
       <button class="btn_enter_room">Vào phòng</button>
     `;
 
-    roomListElement.appendChild(roomElement);
+      roomListElement.appendChild(roomElement);
+    } else {
+      db.collection("rooms").doc(room.id).delete();
+
+      console.log("Room deleted");
+    }
   });
 }
 
@@ -34,19 +40,31 @@ const createRoom = () => {
   if (roomName.length > 0) {
     const me = StoreManager.get("player");
 
+    const roomInfo = {
+      name: roomName,
+      players: [me],
+      password: "",
+      host: me,
+    };
+
     db.collection("rooms")
-      .add({
-        name: roomName,
-        players: [me],
-        password: "",
-        host: me,
-      })
+      .add(roomInfo)
       .then((room) => {
         console.log("Room created");
 
-        StoreManager.set("currentRoomId", room.id);
+        db.collection("rooms")
+          .doc(room.id)
+          .update({
+            id: room.id,
+            ...roomInfo,
+          })
+          .then(() => {
+            console.log("Room updated");
 
-        ipcRenderer.send("start-game");
+            StoreManager.set("currentRoomId", room.id);
+
+            ipcRenderer.send("start-game");
+          });
       })
       .catch(() => {});
   }

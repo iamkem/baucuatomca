@@ -142,3 +142,11 @@ ipcMain.on("start-game", () => {
 
   createGameWindow();
 });
+
+ipcMain.on("exit-room", () => {
+  if (gameWindow) {
+    gameWindow.close();
+  }
+
+  createRoomListWindow();
+});
