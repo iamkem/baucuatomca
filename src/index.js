@@ -71,8 +71,10 @@ const createRoomListWindow = () => {
   });
 };
 
-const createGameWindow = () => {
+const createGameWindow = (isHost = true) => {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
+  const filePath = isHost ? "game_host.html" : "game_client.html";
 
   gameWindow = new BrowserWindow({
     width,
@@ -85,7 +87,7 @@ const createGameWindow = () => {
   });
 
   gameWindow
-    .loadFile(path.join(__dirname, "game.html"))
+    .loadFile(path.join(__dirname, filePath))
     .then(() => {
       console.log("Game window loaded");
     })
@@ -135,12 +137,12 @@ ipcMain.on("room-list", () => {
   createRoomListWindow();
 });
 
-ipcMain.on("start-game", () => {
+ipcMain.on("start-game", (event, data) => {
   if (roomListWindow) {
     roomListWindow.close();
   }
 
-  createGameWindow();
+  createGameWindow(data.isHost);
 });
 
 ipcMain.on("exit-room", () => {

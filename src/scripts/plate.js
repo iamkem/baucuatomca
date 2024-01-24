@@ -44,6 +44,22 @@ export class Plate {
     this.#draw();
   }
 
+  customRoll(values) {
+    if (typeof this._dices == "undefined") {
+      return;
+    }
+
+    console.log("debug", values);
+
+    if (this._dices.length > 0) {
+      this._dices.forEach((dice, index) => {
+        dice.customRoll(values[index]);
+      });
+    }
+
+    this.#draw();
+  }
+
   #draw() {
     const ctx = this._context;
 

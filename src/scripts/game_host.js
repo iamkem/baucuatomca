@@ -38,6 +38,12 @@ let me = StoreManager.get("player");
 
 const players = [];
 
+const game = {
+  winValues: [],
+  isRolling: false,
+  isOpen: false,
+};
+
 async function initGame() {
   plateFront = new Plate(pfElement, {
     image: "./img/plate.png",
@@ -88,12 +94,12 @@ function registerRoomListener() {
   roomRef.onSnapshot((doc) => {
     currentRoom = doc.data();
 
-    if (currentRoom) {
-      const { players } = currentRoom;
+    console.log("room update", currentRoom);
 
-      if (players.length > 0) {
-        players.forEach(updatePlayer);
-      }
+    const { players } = currentRoom;
+
+    if (players.length > 0) {
+      players.forEach(updatePlayer);
     }
   });
 }
@@ -115,6 +121,12 @@ function addPlayer(data) {
     role: getRole(),
     image: "./img/avatar.png",
   });
+
+  if (data.id === me.id) {
+    me = player;
+
+    StoreManager.set("player", me);
+  }
 
   console.log("player added", player);
 
@@ -179,7 +191,9 @@ function checkWin() {
     const item = Object.keys(betItem)[0];
     const value = Object.values(betItem)[0];
 
-    const isWin = currentValues.includes(item);
+    const isWin = currentValues.includes(parseInt(item));
+
+    console.log("isWin", isWin, item, value);
 
     if (isWin) {
       player.money += value;
@@ -203,6 +217,18 @@ const shakePlate = () => {
   });
 };
 
+function generateRandomValues() {
+  const values = [];
+
+  for (let i = 0; i < 3; i++) {
+    const random = Math.floor(Math.random() * 6) + 1;
+
+    values.push(random);
+  }
+
+  return values;
+}
+
 function luckyRoll() {
   if (!isCanRoll()) {
     console.log("Players are not ready");
@@ -210,15 +236,29 @@ function luckyRoll() {
     return;
   }
 
+  currentValues = generateRandomValues();
+
+  game.winValues = currentValues;
+  game.isRolling = true;
+
+  roomRef.update({ game });
+
   startBtn.disabled = true;
   startBtn.innerText = "Đang xóc...";
 
   pbElement.classList.add("movePlate");
 
   setTimeout(() => {
-    plateFront.roll((values) => {
-      currentValues = values;
-    });
+    plateFront.customRoll(currentValues);
+
+    game.isRolling = false;
+
+    roomRef.update({ game });
+
+    //
+    // plateFront.roll((values) => {
+    //   currentValues = values;
+    // });
 
     shakePlate().then(() => {
       startBtn.innerText = "Mở";
@@ -231,6 +271,10 @@ function luckyRoll() {
 
 function open() {
   console.log("win values:", currentValues);
+
+  game.isOpen = true;
+
+  roomRef.update({ game });
 
   pbElement.classList.add("openPlate");
 

@@ -7,6 +7,28 @@ const db = firebase.firestore();
 
 const roomListElement = document.querySelector(".room_list");
 
+function onEnterRoomClick(room) {
+  const me = StoreManager.get("player");
+
+  const roomInfo = {
+    ...room,
+    players: [...room.players, me],
+  };
+
+  db.collection("rooms")
+    .doc(room.id)
+    .update(roomInfo)
+    .then(() => {
+      console.log("Room updated");
+
+      StoreManager.set("currentRoomId", room.id);
+
+      ipcRenderer.send("start-game", {
+        isHost: false,
+      });
+    });
+}
+
 function updateRoomList(rooms) {
   roomListElement.innerHTML = "";
 
@@ -21,15 +43,29 @@ function updateRoomList(rooms) {
       <span class="room_name">${room.name}</span>
       <span class="room_players">Số người chơi: ${room.players.length}</span>
       <span class="room_password_icon">${room.password ? "🔒" : ""}</span>
-      <button class="btn_enter_room">Vào phòng</button>
-    `;
+      <button class="btn_enter_room" data-room-id="${
+        room.id
+      }">Vào phòng</button>`;
 
       roomListElement.appendChild(roomElement);
     } else {
       db.collection("rooms").doc(room.id).delete();
-
-      console.log("Room deleted");
     }
+  });
+
+  document.querySelectorAll(".btn_enter_room").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const roomId = btn.getAttribute("data-room-id");
+
+      db.collection("rooms")
+        .doc(roomId)
+        .get()
+        .then((doc) => {
+          const room = doc.data();
+
+          onEnterRoomClick(room);
+        });
+    });
   });
 }
 
@@ -63,7 +99,9 @@ const createRoom = () => {
 
             StoreManager.set("currentRoomId", room.id);
 
-            ipcRenderer.send("start-game");
+            ipcRenderer.send("start-game", {
+              isHost: true,
+            });
           });
       })
       .catch(() => {});

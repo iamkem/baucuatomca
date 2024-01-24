@@ -14,6 +14,10 @@ export class Dice {
     callback?.(this._value);
   }
 
+  customRoll(value) {
+    this._value = value;
+  }
+
   get images() {
     return this._images;
   }
