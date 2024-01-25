@@ -78,6 +78,8 @@ async function initGame() {
   board.onClick = (event, item) => {
     bet(item.value);
   };
+
+  cancelBtn.addEventListener("click", cancelBet);
 }
 
 async function initRoom() {
@@ -89,11 +91,7 @@ async function initRoom() {
 
   checkRoomRole();
 
-  players.forEach((player) => {
-    delete player.betItem;
-
-    addPlayer(player);
-  });
+  players.forEach(addPlayer);
 
   await roomRef.update({ players });
 }
@@ -107,6 +105,8 @@ function registerRoomListener() {
     const { players } = currentRoom;
 
     if (players.length > 0) {
+      updatePlayers(players);
+
       players.forEach(updatePlayer);
     }
   });
@@ -118,6 +118,8 @@ function checkRoomRole() {
   if (host.id === me.id) {
     cancelBtn.style.display = "none";
 
+    moneyValuesElement.style.display = "none";
+
     board.disabled = true;
   } else {
     startBtn.style.display = "none";
@@ -126,31 +128,35 @@ function checkRoomRole() {
 
 const getRole = () => (currentRoom.host.id === me.id ? "host" : "player");
 
+const updatePlayers = (players) => {
+  roomPlayers = roomPlayers.filter((player) => {
+    const index = players.findIndex((p) => p.id === player.id);
+
+    if (index === -1) {
+      player.exit();
+
+      return false;
+    }
+
+    return true;
+  });
+};
+
 const updatePlayer = (player) => {
   let playerIndex = roomPlayers.findIndex((p) => p.id === player.id);
 
   if (playerIndex === -1) {
     addPlayer(player);
   } else {
-    roomPlayers = roomPlayers.filter((p) => {
-      if (p.id === player.id) {
-        p.money = player.money;
-        p.betItem = player.betItem;
+    const p = roomPlayers[playerIndex];
 
-        p.update();
+    p.money = player.money;
+    p.betItem = player.betItem;
 
-        return true;
-      } else {
-        console.log("remove player", p);
+    console.log("update player", p);
 
-        p.exit();
-
-        return false;
-      }
-    });
+    p.update();
   }
-
-  console.log("update player", player);
 };
 
 function addPlayer(data) {
@@ -164,8 +170,6 @@ function addPlayer(data) {
     me = player;
 
     StoreManager.set("player", me);
-
-    console.log("me", me);
   }
 
   console.log("player added", player);
@@ -185,6 +189,16 @@ function bet(value) {
   const playerIndex = players.findIndex((player) => player.id === me.id);
 
   players[playerIndex].betItem = { [value]: currentMoneyValue };
+
+  roomRef.update({ players });
+}
+
+function cancelBet() {
+  const { players } = currentRoom;
+
+  const playerIndex = players.findIndex((player) => player.id === me.id);
+
+  delete players[playerIndex].betItem;
 
   roomRef.update({ players });
 }
@@ -221,33 +235,48 @@ function initMoneyValues() {
 }
 
 function checkWin() {
-  const { players } = currentRoom;
+  const { players, host } = currentRoom;
 
   players.forEach((player) => {
     const { betItem } = player;
 
-    if (!betItem) return;
+    if (betItem) {
+      const item = Object.keys(betItem)[0];
 
-    const item = Object.keys(betItem)[0];
-    const value = Object.values(betItem)[0];
+      const value = Object.values(betItem)[0];
 
-    const isWin = currentValues.includes(parseInt(item));
+      const isWin = currentValues.includes(parseInt(item));
 
-    console.log("isWin", isWin, item, value);
+      let valueCount = 1;
 
-    if (isWin) {
-      player.money += value;
-    } else {
-      player.money -= value;
+      if (isWin) {
+        valueCount = currentValues.filter((v) => v === parseInt(item)).length;
+
+        player.money += value * valueCount;
+        host.money -= value * valueCount;
+      } else {
+        player.money -= value;
+        host.money += value;
+      }
     }
 
     delete player.betItem;
   });
 
-  roomRef.update({ players });
+  const hostPlayer = players.find((player) => player.id === host.id);
+
+  hostPlayer.money = host.money;
+
+  roomRef.update({ players, host });
 }
 
-const isCanRoll = () => currentRoom.players.every((player) => player.betItem);
+const isCanRoll = () => {
+  let { players } = currentRoom;
+
+  players = players.filter((player) => player.id !== me.id);
+
+  return players.every((player) => player.betItem);
+};
 
 const shakePlate = () => {
   return new Promise((resolve) => {
@@ -271,6 +300,8 @@ function generateRandomValues() {
 
 function luckyRoll() {
   if (!isCanRoll()) {
+    alert("Người chơi chưa đặt cược");
+
     console.log("Players are not ready");
 
     return;
@@ -294,11 +325,6 @@ function luckyRoll() {
     game.isRolling = false;
 
     roomRef.update({ game });
-
-    //
-    // plateFront.roll((values) => {
-    //   currentValues = values;
-    // });
 
     shakePlate().then(() => {
       startBtn.innerText = "Mở";
