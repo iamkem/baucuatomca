@@ -13,6 +13,7 @@ import { StoreManager } from "./store.js";
 let plateFront, plateBack, board;
 
 const startBtn = document.getElementById("btn_roll");
+const cancelBtn = document.getElementById("btn_cancel");
 const exitBtn = document.getElementById("btn_exit_room");
 const pbElement = document.querySelector(".plate_back");
 const pfElement = document.querySelector(".plate_front");
@@ -62,16 +63,21 @@ async function initGame() {
     width: 700,
     height: 300,
     itemsLength: 6,
-    onClick: (event, item) => {
-      bet(item.value);
-    },
   });
+
+  if (typeof me.id === "undefined") {
+    me.id = me._id;
+  }
 
   initMoneyValues();
 
   initRoom().then(() => {
     registerRoomListener();
   });
+
+  board.onClick = (event, item) => {
+    bet(item.value);
+  };
 }
 
 async function initRoom() {
@@ -80,6 +86,8 @@ async function initRoom() {
   currentRoom = (await roomRef.get()).data();
 
   const { players } = currentRoom;
+
+  checkRoomRole();
 
   players.forEach((player) => {
     delete player.betItem;
@@ -104,11 +112,21 @@ function registerRoomListener() {
   });
 }
 
+function checkRoomRole() {
+  const { host } = currentRoom;
+
+  if (host.id === me.id) {
+    cancelBtn.style.display = "none";
+
+    board.disabled = true;
+  } else {
+    startBtn.style.display = "none";
+  }
+}
+
 const getRole = () => (currentRoom.host.id === me.id ? "host" : "player");
 
 const updatePlayer = (player) => {
-  console.log("update player", player);
-
   let playerIndex = roomPlayers.findIndex((p) => p.id === player.id);
 
   if (playerIndex === -1) {
@@ -131,6 +149,8 @@ const updatePlayer = (player) => {
       }
     });
   }
+
+  console.log("update player", player);
 };
 
 function addPlayer(data) {
@@ -144,6 +164,8 @@ function addPlayer(data) {
     me = player;
 
     StoreManager.set("player", me);
+
+    console.log("me", me);
   }
 
   console.log("player added", player);
@@ -320,11 +342,11 @@ function exitRoom() {
 
   StoreManager.set("player", players[playerIndex]);
 
+  StoreManager.delete("currentRoomId");
+
   players.splice(playerIndex, 1);
 
   roomRef.update({ players });
-
-  StoreManager.delete("currentRoomId");
 
   ipcRenderer.send("exit-room");
 }

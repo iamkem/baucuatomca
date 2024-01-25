@@ -52,6 +52,8 @@ export class Board {
 
     this.#items = props.itemsLength;
     this.#init(container);
+
+    this.disabled = props.disabled || false;
     this.onClick = props.onClick;
   }
 
@@ -68,7 +70,9 @@ export class Board {
     img.src = item.image.src;
 
     img.addEventListener("click", (event) => {
-      this.onClick(event, item);
+      if (!this._disabled) {
+        this.onClick(event, item);
+      }
     });
 
     return img;
@@ -141,5 +145,17 @@ export class Board {
     }
 
     this._items = items;
+  }
+
+  set disabled(val) {
+    if (typeof val !== "boolean") {
+      throw new Error("Value must be a boolean");
+    }
+
+    this._disabled = val;
+  }
+
+  get disabled() {
+    return this._disabled;
   }
 }
