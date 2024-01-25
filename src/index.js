@@ -74,7 +74,7 @@ const createRoomListWindow = () => {
 const createGameWindow = (isHost = true) => {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-  const filePath = isHost ? "game_host.html" : "game_client.html";
+  // const filePath = isHost ? "game_host.html" : "game_client.html";
 
   gameWindow = new BrowserWindow({
     width,
@@ -87,7 +87,7 @@ const createGameWindow = (isHost = true) => {
   });
 
   gameWindow
-    .loadFile(path.join(__dirname, filePath))
+    .loadFile(path.join(__dirname, "game_host.html"))
     .then(() => {
       console.log("Game window loaded");
     })

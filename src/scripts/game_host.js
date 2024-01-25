@@ -36,7 +36,7 @@ let roomRef, currentRoom;
 
 let me = StoreManager.get("player");
 
-const players = [];
+let roomPlayers = [];
 
 const game = {
   winValues: [],
@@ -107,12 +107,30 @@ function registerRoomListener() {
 const getRole = () => (currentRoom.host.id === me.id ? "host" : "player");
 
 const updatePlayer = (player) => {
-  const playerIndex = players.findIndex((p) => p.id === player.id);
+  console.log("update player", player);
 
-  players[playerIndex].money = player.money;
-  players[playerIndex].betItem = player.betItem;
+  let playerIndex = roomPlayers.findIndex((p) => p.id === player.id);
 
-  players[playerIndex].update();
+  if (playerIndex === -1) {
+    addPlayer(player);
+  } else {
+    roomPlayers = roomPlayers.filter((p) => {
+      if (p.id === player.id) {
+        p.money = player.money;
+        p.betItem = player.betItem;
+
+        p.update();
+
+        return true;
+      } else {
+        console.log("remove player", p);
+
+        p.exit();
+
+        return false;
+      }
+    });
+  }
 };
 
 function addPlayer(data) {
@@ -130,7 +148,7 @@ function addPlayer(data) {
 
   console.log("player added", player);
 
-  players.push(player);
+  roomPlayers.push(player);
 }
 
 function bet(value) {

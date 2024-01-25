@@ -110,6 +110,12 @@ export class Player {
     }
   }
 
+  exit() {
+    const e = document.querySelector(`.${this._className}`);
+
+    e.remove();
+  }
+
   get id() {
     return this._id;
   }

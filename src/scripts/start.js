@@ -11,6 +11,10 @@ function checkExistingPlayer() {
   return new Promise((resolve) => {
     const player = StoreManager.get("player");
 
+    if (!player) {
+      resolve(false);
+    }
+
     db.collection("users")
       .doc(player.id)
       .get()
